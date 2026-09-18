@@ -1410,7 +1410,7 @@
     message:    { icon: 'letter',  title: C.message.title,    w: 552, h: 444, build: buildMessage },
     gallery:    { icon: 'folder',  title: C.gallery.title,    w: 494, h: 356, build: buildGallery },
     viewer:     { icon: 'folder',  title: C.gallery.title,    w: 504, h: 408, build: buildViewer },
-    player:     { icon: 'player',  title: C.player.title,     w: 344, h: 226, build: buildPlayer },
+    player:     { icon: 'player',  title: C.player.title,     w: 344, h: 190, build: buildPlayer },
     properties: { icon: 'monitor', title: C.properties.title, w: 436, h: 452, build: buildProps }
   };
 
