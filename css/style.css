@@ -1,0 +1,1010 @@
+/* =============================================================================
+   YEON-OS :: style.css
+   Everything here is hand-built: bevels, gradients, icons, patterns.
+   No frameworks, no resets from elsewhere, no borrowed assets.
+
+   Section map
+     00 tokens          05 desktop icons      10 player
+     01 reset           06 windows            11 properties
+     02 backdrop        07 taskbar            12 dialogs
+     03 boot            08 notepad            13 easter eggs
+     04 menu bar        09 gallery/viewer     14 mobile / motion
+   ========================================================================== */
+
+/* -- 00 tokens ------------------------------------------------------------ */
+:root {
+  --xp-blue:   #007BD6;
+  --deep-navy: #0A0F3C;
+  --indigo:    #2F3BA3;
+  --silver:    #C0C0C0;
+  --face:      #EFEFEF;
+  --cyan:      #7FE3F0;
+  --gold:      #F5C542;
+  --ink:       #1A1A1A;
+
+  /* derived chrome tones */
+  --face-hi:   #FFFFFF;
+  --face-lo:   #9A9A9A;
+  --face-dark: #6E6E6E;
+  --title-a:   #007BD6;
+  --title-b:   #0B3F8F;
+  --title-off-a: #7E9CB8;
+  --title-off-b: #9FB2C4;
+  --sel:       #0A246A;
+
+  --font-pixel: 'Galmuri11', Tahoma, 'Microsoft Sans Serif', 'Malgun Gothic', sans-serif;
+  --font-term:  'VT323', 'Galmuri11', 'Courier New', monospace;
+  --font-body:  'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont,
+                'Malgun Gothic', 'Apple SD Gothic Neo', Tahoma, sans-serif;
+  /* Latin falls to a real monospace, Hangul falls to Galmuri11 (also fixed-width),
+     so the columns in README.txt line up in both languages. */
+  --font-note:  ui-monospace, 'Cascadia Mono', Consolas, 'Galmuri11', 'DejaVu Sans Mono', monospace;
+
+  --fs-chrome: 11px;   /* Galmuri11 is drawn on an 11px grid; Tahoma 11px is the */
+  --fs-note:   13px;   /* classic Windows UI size too, so the fallback is right. */
+  --fs-body:   14px;
+
+  --menubar-h: 26px;
+  --taskbar-h: 30px;
+  --z-win: 100;
+}
+
+/* -- 01 reset ------------------------------------------------------------- */
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+body {
+  background: radial-gradient(ellipse 120% 90% at 50% 38%, var(--indigo) 0%, #1b2478 26%, var(--deep-navy) 72%, #05082a 100%);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+img { display: block; max-width: 100%; }
+::selection { background: var(--sel); color: #fff; }
+
+/* Korean body copy gets Pretendard; keep-all stops mid-word breaks in Hangul. */
+[data-lang="ko"] .body-copy,
+[data-lang="ko"] .dlg-text,
+[data-lang="ko"] .prop-v,
+[data-lang="ko"] .thumb-cap { font-family: var(--font-body); word-break: keep-all; }
+
+/* -- 02 backdrop: starfield + circuit tile + CRT -------------------------- */
+#starfield {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  display: block;
+}
+body.no-stars #starfield { display: none; }
+
+/* Circuit-board tile, generated here as an inline SVG data URI. */
+#circuit {
+  position: fixed; inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg fill='none' stroke='%237FE3F0' stroke-width='1.5'%3E%3Cpath d='M0 16h22l10 10v24l10 10h54'/%3E%3Cpath d='M16 0v18l12 12h20l10-10V0'/%3E%3Cpath d='M96 34H74L62 46v18l10 10v22'/%3E%3Cpath d='M0 72h18l12-12h16'/%3E%3Cpath d='M30 96V84l-8-8H0'/%3E%3Cpath d='M96 60H86'/%3E%3Cpath d='M48 96V74'/%3E%3C/g%3E%3Cg fill='%237FE3F0'%3E%3Ccircle cx='22' cy='16' r='3'/%3E%3Ccircle cx='42' cy='60' r='3'/%3E%3Ccircle cx='74' cy='34' r='3'/%3E%3Ccircle cx='30' cy='60' r='2.5'/%3E%3Ccircle cx='48' cy='74' r='2.5'/%3E%3Ccircle cx='72' cy='74' r='2.5'/%3E%3C/g%3E%3Cg fill='none' stroke='%237FE3F0' stroke-width='1.5'%3E%3Crect x='56' y='6' width='14' height='10'/%3E%3Crect x='6' y='40' width='10' height='14'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Above everything, boot screen included - a BIOS on a CRT should have
+   scanlines too. pointer-events:none so it never eats a click. */
+#crt {
+  position: fixed; inset: 0;
+  z-index: 10001;
+  pointer-events: none;
+}
+.crt-lines {
+  position: absolute; inset: 0;
+  /* Light enough to read as texture over the white window interiors too. */
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    rgba(0, 0, 0, 0) 1px,
+    rgba(0, 0, 0, 0) 3px
+  );
+  animation: flicker 5.5s steps(1, end) infinite;
+}
+.crt-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 100% 80% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.38) 100%);
+}
+@keyframes flicker {
+  0%, 92%, 100% { opacity: 1; }
+  93%           { opacity: 0.86; }
+  94%           { opacity: 1; }
+  96%           { opacity: 0.92; }
+  97%           { opacity: 1; }
+}
+body.no-crt #crt { display: none; }
+
+/* -- 03 boot -------------------------------------------------------------- */
+#boot {
+  position: fixed; inset: 0;
+  z-index: 10000;
+  background: #05081f;
+  padding: clamp(16px, 4vw, 48px);
+  padding-top: clamp(20px, 6vh, 64px);
+  overflow: hidden;
+  cursor: pointer;
+}
+#boot.done { display: none; }
+#boot-text {
+  margin: 0;
+  font-family: var(--font-term);
+  font-size: clamp(15px, 2.1vw, 22px);
+  line-height: 1.34;
+  color: #EDEDED;
+  text-shadow: 0 0 6px rgba(160, 220, 255, 0.35);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+#boot-text .sig { color: var(--cyan); }
+#boot-text .cur {
+  display: inline-block;
+  width: 0.62em; height: 1em;
+  background: #EDEDED;
+  vertical-align: -0.16em;
+  animation: blink 1s steps(1, end) infinite;
+}
+@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+#boot-skip {
+  position: absolute;
+  right: clamp(16px, 4vw, 48px);
+  bottom: clamp(16px, 4vw, 40px);
+  font-family: var(--font-term);
+  font-size: clamp(13px, 1.5vw, 17px);
+  color: #6f7fa8;
+  opacity: 0;
+  transition: opacity 0.6s;
+}
+#boot-skip.show { opacity: 1; }
+
+/* -- 04 menu bar ---------------------------------------------------------- */
+#os { position: relative; z-index: 10; height: 100%; }
+
+#menubar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: var(--menubar-h);
+  z-index: 500;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 0 4px 0 8px;
+  background: linear-gradient(180deg, #f6f6f6 0%, var(--face) 45%, #d9d9d9 100%);
+  border-bottom: 1px solid var(--ink);
+  box-shadow: inset 0 1px 0 var(--face-hi);
+  color: var(--ink);
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+}
+#wordmark {
+  font-family: 'Michroma', var(--font-pixel);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  display: flex; align-items: center;
+  padding-right: 12px;
+  color: var(--deep-navy);
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.9);
+  white-space: nowrap;
+}
+#wordmark .wm-y { color: var(--xp-blue); }
+#wordmark .wm-dot { color: var(--gold); }
+#menus { display: flex; align-items: stretch; }
+.menu-top {
+  padding: 0 9px;
+  display: flex; align-items: center;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.menu-top:hover { background: rgba(0,123,214,0.14); }
+.menu-top.open {
+  background: var(--sel);
+  color: #fff;
+}
+#menubar-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+  padding-right: 4px;
+}
+#lang { display: flex; align-items: center; gap: 3px; }
+.lang-btn {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  padding: 2px 5px 1px;
+  color: #5a5a5a;
+  border: 1px solid transparent;
+}
+.lang-btn:hover { color: var(--ink); }
+.lang-sep { color: var(--face-lo); }
+[data-lang="en"] .lang-btn[data-set-lang="en"],
+[data-lang="ko"] .lang-btn[data-set-lang="ko"] {
+  color: #fff;
+  background: var(--xp-blue);
+  border-color: var(--ink);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.45);
+}
+#clock {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  white-space: nowrap;
+  padding: 2px 6px 1px;
+  border: 1px solid var(--face-lo);
+  box-shadow: inset 1px 1px 0 var(--face-dark), inset -1px -1px 0 var(--face-hi);
+  background: #e4e4e4;
+}
+
+/* dropdowns */
+.dropdown {
+  position: fixed;
+  z-index: 600;
+  min-width: 186px;
+  padding: 2px;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark),
+              2px 2px 0 rgba(0,0,0,0.35);
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  color: var(--ink);
+}
+.dd-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  padding: 5px 8px 4px;
+  text-align: left;
+  white-space: nowrap;
+}
+.dd-item .dd-hint { margin-left: auto; color: #7a7a7a; font-size: 10px; }
+.dd-item[disabled] { color: var(--face-lo); text-shadow: 1px 1px 0 var(--face-hi); cursor: default; }
+.dd-item:not([disabled]):hover { background: var(--sel); color: #fff; }
+.dd-item:not([disabled]):hover .dd-hint { color: #c9d6ff; }
+.dd-check { width: 10px; display: inline-block; }
+.dd-sep { height: 1px; margin: 3px 2px; background: var(--face-dark); border-bottom: 1px solid var(--face-hi); }
+
+/* -- 05 desktop icons ----------------------------------------------------- */
+#desktop {
+  position: absolute;
+  top: var(--menubar-h);
+  bottom: var(--taskbar-h);
+  left: 0; right: 0;
+  z-index: 20;
+}
+#icons {
+  position: absolute;
+  top: 14px; left: 14px;
+  width: 104px;
+  display: flex; flex-direction: column; gap: 6px;
+  z-index: 21;
+}
+.icon {
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 2px 5px;
+  border: 1px dotted transparent;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  color: #fff;
+  text-align: center;
+}
+.icon svg { width: 32px; height: 32px; image-rendering: pixelated; filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.6)); }
+.icon .icon-label {
+  padding: 1px 3px;
+  line-height: 1.35;
+  word-break: break-all;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+}
+.icon:hover .icon-label { background: rgba(0,123,214,0.45); }
+.icon.selected .icon-label { background: var(--sel); }
+.icon.selected { border-color: rgba(255,255,255,0.5); }
+
+#windows { position: absolute; inset: 0; z-index: 30; }
+#stack { display: none; }
+#sprites { position: absolute; inset: 0; z-index: 25; pointer-events: none; overflow: hidden; }
+
+/* -- 06 windows ----------------------------------------------------------- */
+.window {
+  position: absolute;
+  display: flex; flex-direction: column;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark),
+              inset 2px 2px 0 #e2e2e2, inset -2px -2px 0 var(--face-lo),
+              3px 3px 0 rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+  min-width: 200px;
+  transform-origin: top left;
+}
+.window.opening {
+  transition: transform 150ms cubic-bezier(0.2, 0.9, 0.3, 1), opacity 150ms linear;
+}
+.window.minimised { display: none; }
+
+.titlebar {
+  display: flex; align-items: center;
+  height: 20px;
+  margin: 2px;
+  padding: 0 2px 0 4px;
+  background: linear-gradient(90deg, var(--title-a) 0%, var(--title-b) 100%);
+  color: #fff;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  cursor: default;
+  user-select: none;
+  touch-action: none;
+}
+.window:not(.focused) .titlebar {
+  background: linear-gradient(90deg, var(--title-off-a) 0%, var(--title-off-b) 100%);
+  color: #e8e8e8;
+}
+.tb-icon { width: 14px; height: 14px; margin-right: 5px; flex: 0 0 auto; }
+.tb-icon svg { width: 14px; height: 14px; display: block; }
+.tb-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  line-height: 20px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+}
+.tb-buttons { display: flex; gap: 2px; flex: 0 0 auto; }
+.tb-btn {
+  width: 16px; height: 15px;
+  display: grid; place-items: center;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark);
+  color: var(--ink);
+}
+.tb-btn:active { box-shadow: inset -1px -1px 0 var(--face-hi), inset 1px 1px 0 var(--face-dark); }
+.tb-btn svg { width: 8px; height: 8px; display: block; }
+
+.win-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; margin: 0 2px 2px; }
+
+/* app menu strip inside a window (File Edit Format Help) */
+.appmenu {
+  display: flex; gap: 2px;
+  padding: 2px 3px;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  color: var(--ink);
+  border-bottom: 1px solid var(--face-lo);
+  box-shadow: 0 1px 0 var(--face-hi);
+  flex: 0 0 auto;
+}
+.appmenu span { padding: 2px 7px 1px; }
+.appmenu span:hover { background: var(--sel); color: #fff; }
+
+/* generic pressable button */
+.btn {
+  min-width: 74px;
+  padding: 5px 12px 4px;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  color: var(--ink);
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark),
+              inset 2px 2px 0 #e6e6e6, inset -2px -2px 0 var(--face-lo);
+}
+.btn:active {
+  box-shadow: inset -1px -1px 0 var(--face-hi), inset 1px 1px 0 var(--face-dark),
+              inset -2px -2px 0 #e6e6e6, inset 2px 2px 0 var(--face-lo);
+  padding: 6px 11px 3px 13px;
+}
+.btn:focus-visible { outline: 1px dotted var(--ink); outline-offset: -4px; }
+.btn.sm { min-width: 0; padding: 4px 8px 3px; }
+.btn.sm:active { padding: 5px 7px 2px 9px; }
+
+/* -- scrollbars -----------------------------------------------------------
+   A modern scrollbar ruins the illusion faster than anything else, so this is
+   a chunky bevelled one with a dithered track and drawn arrow buttons.
+   ------------------------------------------------------------------------ */
+.notepad-scroll, .grid, .props-panel, #stack, .viewer-stage {
+  scrollbar-width: auto;
+  scrollbar-color: var(--face) var(--silver);
+}
+.notepad-scroll::-webkit-scrollbar,
+.grid::-webkit-scrollbar,
+.props-panel::-webkit-scrollbar,
+#stack::-webkit-scrollbar { width: 16px; height: 16px; }
+
+.notepad-scroll::-webkit-scrollbar-track,
+.grid::-webkit-scrollbar-track,
+.props-panel::-webkit-scrollbar-track,
+#stack::-webkit-scrollbar-track {
+  background-color: var(--silver);
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'%3E%3Crect width='1' height='1' fill='%23ffffff'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23ffffff'/%3E%3C/svg%3E");
+  border-left: 1px solid var(--face-dark);
+}
+.notepad-scroll::-webkit-scrollbar-thumb,
+.grid::-webkit-scrollbar-thumb,
+.props-panel::-webkit-scrollbar-thumb,
+#stack::-webkit-scrollbar-thumb {
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark),
+              inset 2px 2px 0 #e6e6e6, inset -2px -2px 0 var(--face-lo);
+}
+.notepad-scroll::-webkit-scrollbar-corner,
+.grid::-webkit-scrollbar-corner,
+.props-panel::-webkit-scrollbar-corner { background: var(--silver); }
+
+.notepad-scroll::-webkit-scrollbar-button,
+.grid::-webkit-scrollbar-button,
+.props-panel::-webkit-scrollbar-button,
+#stack::-webkit-scrollbar-button {
+  height: 16px; width: 16px;
+  background-color: var(--face);
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark);
+}
+.notepad-scroll::-webkit-scrollbar-button:vertical:decrement,
+.grid::-webkit-scrollbar-button:vertical:decrement,
+.props-panel::-webkit-scrollbar-button:vertical:decrement,
+#stack::-webkit-scrollbar-button:vertical:decrement {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Crect x='3' y='0' width='1' height='1' fill='%231A1A1A'/%3E%3Crect x='2' y='1' width='3' height='1' fill='%231A1A1A'/%3E%3Crect x='1' y='2' width='5' height='1' fill='%231A1A1A'/%3E%3Crect x='0' y='3' width='7' height='1' fill='%231A1A1A'/%3E%3C/svg%3E");
+}
+.notepad-scroll::-webkit-scrollbar-button:vertical:increment,
+.grid::-webkit-scrollbar-button:vertical:increment,
+.props-panel::-webkit-scrollbar-button:vertical:increment,
+#stack::-webkit-scrollbar-button:vertical:increment {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='7' height='1' fill='%231A1A1A'/%3E%3Crect x='1' y='1' width='5' height='1' fill='%231A1A1A'/%3E%3Crect x='2' y='2' width='3' height='1' fill='%231A1A1A'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%231A1A1A'/%3E%3C/svg%3E");
+}
+/* the doubled buttons Chromium adds at each end would look wrong */
+.notepad-scroll::-webkit-scrollbar-button:vertical:start:increment,
+.notepad-scroll::-webkit-scrollbar-button:vertical:end:decrement,
+.grid::-webkit-scrollbar-button:vertical:start:increment,
+.grid::-webkit-scrollbar-button:vertical:end:decrement,
+.props-panel::-webkit-scrollbar-button:vertical:start:increment,
+.props-panel::-webkit-scrollbar-button:vertical:end:decrement,
+#stack::-webkit-scrollbar-button:vertical:start:increment,
+#stack::-webkit-scrollbar-button:vertical:end:decrement { display: none; }
+
+/* inset sunken area */
+.sunken {
+  background: #fff;
+  border: 1px solid var(--face-dark);
+  box-shadow: inset 1px 1px 0 #7c7c7c, inset -1px -1px 0 var(--face-hi), 1px 1px 0 var(--face-hi);
+}
+
+/* status bar at the bottom of a window */
+.statusbar {
+  display: flex; align-items: center; gap: 6px;
+  flex: 0 0 auto;
+  padding: 3px 4px;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: #3a3a3a;
+}
+.statusbar > span {
+  padding: 2px 6px 1px;
+  box-shadow: inset 1px 1px 0 var(--face-dark), inset -1px -1px 0 var(--face-hi);
+}
+.statusbar > span.grow { flex: 1 1 auto; }
+
+/* -- 07 taskbar ----------------------------------------------------------- */
+#taskbar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  height: var(--taskbar-h);
+  z-index: 500;
+  display: flex; align-items: center; gap: 4px;
+  padding: 2px 4px;
+  padding-bottom: calc(2px + env(safe-area-inset-bottom, 0px));
+  height: calc(var(--taskbar-h) + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, #f2f2f2 0%, var(--silver) 12%, #a8a8a8 100%);
+  border-top: 1px solid var(--ink);
+  box-shadow: inset 0 1px 0 var(--face-hi);
+  color: var(--ink);
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+}
+#start-btn {
+  display: flex; align-items: center; gap: 5px;
+  flex: 0 0 auto;
+  padding: 4px 9px 3px 6px;
+  font-weight: 700;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark);
+}
+#start-btn.open, #start-btn:active {
+  box-shadow: inset -1px -1px 0 var(--face-hi), inset 1px 1px 0 var(--face-dark);
+}
+.start-icon { width: 16px; height: 16px; display: block; }
+.start-icon svg { width: 16px; height: 16px; display: block; }
+#tasks {
+  flex: 1 1 auto;
+  display: flex; align-items: center; gap: 3px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+#tasks::-webkit-scrollbar { display: none; }
+.task {
+  display: flex; align-items: center; gap: 5px;
+  flex: 0 1 148px;
+  min-width: 34px;
+  padding: 4px 7px 3px;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark);
+  overflow: hidden;
+}
+.task svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.task span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task.active {
+  background: #dcdcdc;
+  box-shadow: inset -1px -1px 0 var(--face-hi), inset 1px 1px 0 var(--face-dark);
+}
+#tray {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px 3px;
+  box-shadow: inset 1px 1px 0 var(--face-dark), inset -1px -1px 0 var(--face-hi);
+  white-space: nowrap;
+}
+#tray::before {
+  content: '';
+  width: 8px; height: 8px;
+  background: var(--cyan);
+  box-shadow: 0 0 4px var(--cyan);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+#startmenu {
+  position: fixed;
+  left: 4px;
+  bottom: calc(var(--taskbar-h) + env(safe-area-inset-bottom, 0px));
+  z-index: 600;
+  width: 214px;
+  display: flex;
+  padding: 2px;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark),
+              2px 2px 0 rgba(0,0,0,0.4);
+  color: var(--ink);
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+}
+.sm-banner {
+  flex: 0 0 22px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: right;
+  padding: 8px 4px;
+  font-family: 'Michroma', var(--font-pixel);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: #fff;
+  background: linear-gradient(0deg, var(--title-a), var(--deep-navy));
+}
+.sm-items { flex: 1 1 auto; display: flex; flex-direction: column; padding: 2px; }
+.sm-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px 5px;
+  text-align: left;
+}
+.sm-item svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.sm-item:hover { background: var(--sel); color: #fff; }
+
+/* -- 08 notepad ----------------------------------------------------------- */
+.notepad { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.notepad-scroll {
+  flex: 1 1 auto;
+  margin: 2px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--face-dark);
+  box-shadow: inset 1px 1px 0 #7c7c7c, inset -1px -1px 0 var(--face-hi);
+}
+.notepad-body {
+  margin: 0;
+  padding: 10px 12px 26px;
+  font-family: var(--font-note);
+  font-size: var(--fs-note);
+  line-height: 1.62;
+  color: var(--ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 100%;
+}
+[data-lang="ko"] .notepad-body { line-height: 1.75; word-break: keep-all; }
+.notepad-body .caret {
+  display: inline-block;
+  width: 7px; height: 1em;
+  background: var(--ink);
+  vertical-align: -0.18em;
+  animation: blink 1s steps(1, end) infinite;
+}
+.notepad.typing { cursor: pointer; }
+
+/* -- 09 gallery + viewer -------------------------------------------------- */
+.explorer { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.explorer-path {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 4px;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+}
+.explorer-path .path-box {
+  flex: 1 1 auto;
+  padding: 3px 6px 2px;
+  background: #fff;
+  box-shadow: inset 1px 1px 0 #7c7c7c, inset -1px -1px 0 var(--face-hi);
+}
+.grid {
+  flex: 1 1 auto;
+  margin: 2px;
+  padding: 8px;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 10px;
+  align-content: start;
+  background: #fff;
+  border: 1px solid var(--face-dark);
+  box-shadow: inset 1px 1px 0 #7c7c7c, inset -1px -1px 0 var(--face-hi);
+}
+.thumb {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 5px 3px;
+  border: 1px dotted transparent;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: var(--ink);
+  text-align: center;
+}
+.thumb:hover { border-color: var(--xp-blue); background: rgba(0,123,214,0.08); }
+.thumb-frame {
+  width: 88px; height: 66px;
+  display: grid; place-items: center;
+  overflow: hidden;
+  background: #dfe6ef;
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark);
+}
+.thumb-frame img { width: 100%; height: 100%; object-fit: cover; }
+.thumb-frame.ph {
+  background:
+    repeating-linear-gradient(45deg, #dfe6ef 0 6px, #cfd9e6 6px 12px);
+  position: relative;
+}
+.thumb-frame.ph span {
+  position: relative;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: #4a5a70;
+  background: rgba(255,255,255,0.85);
+  padding: 2px 5px 1px;
+  box-shadow: 0 0 0 1px #8fa3bd;
+}
+.thumb-cap { line-height: 1.4; word-break: break-word; max-width: 100%; }
+
+.viewer { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.viewer-stage {
+  flex: 1 1 auto;
+  margin: 2px;
+  display: grid; place-items: center;
+  overflow: hidden;
+  background: #101534;
+  border: 1px solid var(--face-dark);
+  box-shadow: inset 1px 1px 0 #000, inset -1px -1px 0 var(--face-hi);
+  min-height: 140px;
+}
+.viewer-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.viewer-ph {
+  width: 100%; height: 100%;
+  display: grid; place-items: center;
+  background: repeating-linear-gradient(45deg, #17204a 0 10px, #131a3c 10px 20px);
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  color: var(--cyan);
+  text-align: center;
+  padding: 16px;
+}
+.viewer-bar { display: flex; align-items: center; gap: 6px; padding: 3px 4px 4px; }
+.viewer-bar .count { margin-left: auto; font-family: var(--font-pixel); font-size: 10px; color: #3a3a3a; }
+
+/* -- 10 player ------------------------------------------------------------ */
+.player { flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px; padding: 6px; min-height: 0; }
+.player-screen {
+  padding: 7px 8px 8px;
+  background: #0b1030;
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 #000, inset -1px -1px 0 #3a4a8a;
+}
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  color: var(--cyan);
+  text-shadow: 0 0 6px rgba(127,227,240,0.6);
+  padding: 2px 0 3px;
+  mask-image: linear-gradient(90deg, transparent 0, #000 6px, #000 calc(100% - 6px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6px, #000 calc(100% - 6px), transparent 100%);
+}
+/* The marquee keeps scrolling whether or not the song is playing, the way the
+   display on a hi-fi does. The negative delay starts it part-way along so the
+   title is on screen immediately instead of waiting to slide in. */
+.marquee-inner {
+  display: inline-block;
+  padding-left: 100%;
+  animation: slide 17s linear infinite;
+  animation-delay: -5s;
+}
+.marquee-inner span { padding-right: 3em; }
+@keyframes slide { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+
+.analyser { display: flex; align-items: flex-end; gap: 2px; height: 30px; margin-top: 6px; }
+.analyser i {
+  display: block;
+  flex: 1 1 auto;
+  height: 3px;
+  background: linear-gradient(0deg, var(--cyan), var(--gold));
+  transition: height 90ms linear;
+}
+/* at rest it should read as a quiet baseline, not a dashed line */
+.player.paused .analyser i { opacity: 0.4; }
+.player-time {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-term);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  margin-top: 6px;
+}
+.seek {
+  position: relative;
+  height: 12px;
+  margin-top: 4px;
+  background: #060a22;
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 #000, inset -1px -1px 0 #3a4a8a;
+  cursor: pointer;
+  touch-action: none;
+}
+.seek-fill {
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 0%;
+  background: repeating-linear-gradient(90deg, var(--cyan) 0 3px, #4fb7c9 3px 5px);
+}
+.seek-knob {
+  position: absolute; top: -2px;
+  width: 7px; height: 14px;
+  margin-left: -3px;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark);
+}
+.transport { display: flex; align-items: center; gap: 5px; }
+.tbtn {
+  width: 34px; height: 26px;
+  display: grid; place-items: center;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark),
+              inset 2px 2px 0 #e6e6e6, inset -2px -2px 0 var(--face-lo);
+}
+.tbtn:active, .tbtn.on {
+  box-shadow: inset -1px -1px 0 var(--face-hi), inset 1px 1px 0 var(--face-dark),
+              inset -2px -2px 0 #e6e6e6, inset 2px 2px 0 var(--face-lo);
+}
+.tbtn svg { width: 14px; height: 14px; }
+.player-note {
+  margin-left: auto;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: #3a3a3a;
+  text-align: right;
+  line-height: 1.4;
+}
+/* The official YouTube iframe lives here doing the actual playing. It is kept
+   at a real size and moved off-screen rather than display:none, because some
+   browsers refuse to play media in a zero-sized or hidden frame. */
+.yt-host {
+  position: absolute;
+  left: -9999px; top: 0;
+  width: 200px; height: 150px;
+  opacity: 0;
+  pointer-events: none;
+}
+.player-offline {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: #b34a4a;
+  padding: 2px 1px;
+}
+.player-offline a { color: var(--sel); }
+
+/* -- 11 properties -------------------------------------------------------- */
+.props { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.tabstrip { display: flex; padding: 4px 4px 0; gap: 2px; }
+.tab {
+  padding: 4px 12px 3px;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  background: var(--face);
+  border: 1px solid var(--ink);
+  border-bottom: 0;
+  box-shadow: inset 1px 1px 0 var(--face-hi);
+  position: relative; top: 1px;
+}
+.props-panel {
+  flex: 1 1 auto;
+  margin: 0 4px 4px;
+  padding: 10px 12px;
+  overflow: auto;
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark);
+}
+.props-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; }
+.props-head svg { width: 32px; height: 32px; flex: 0 0 auto; }
+.props-head .ph-name { font-family: var(--font-pixel); font-size: var(--fs-chrome); line-height: 1.5; }
+.props-head .ph-sub { font-family: var(--font-pixel); font-size: 10px; color: #555; }
+.rule { height: 1px; background: var(--face-dark); border-bottom: 1px solid var(--face-hi); margin: 2px 0 10px; }
+.prop-row { display: flex; gap: 10px; padding: 3px 0; align-items: baseline; }
+.prop-k {
+  flex: 0 0 104px;
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  color: #333;
+}
+.prop-v {
+  flex: 1 1 auto;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  word-break: break-word;
+}
+.props-foot {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--face-lo);
+  font-size: 12px;
+  color: #444;
+}
+.props-buttons { display: flex; justify-content: flex-end; gap: 6px; padding: 0 4px 6px; }
+
+/* -- 12 dialogs ----------------------------------------------------------- */
+#dialogs { position: fixed; inset: 0; z-index: 900; pointer-events: none; }
+.dialog {
+  position: absolute;
+  pointer-events: auto;
+  width: min(360px, calc(100vw - 32px));
+  background: var(--face);
+  border: 1px solid var(--ink);
+  box-shadow: inset 1px 1px 0 var(--face-hi), inset -1px -1px 0 var(--face-dark),
+              inset 2px 2px 0 #e2e2e2, inset -2px -2px 0 var(--face-lo),
+              3px 3px 0 rgba(0,0,0,0.5);
+  animation: pop 110ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+@keyframes pop { from { transform: scale(0.88); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+.dlg-body { display: flex; gap: 12px; padding: 14px 14px 10px; }
+.dlg-body svg { width: 32px; height: 32px; flex: 0 0 auto; }
+.dlg-text { flex: 1 1 auto; min-width: 0; }
+.dlg-head {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-chrome);
+  line-height: 1.6;
+  color: var(--ink);
+  word-break: break-word;
+}
+.dlg-detail { margin-top: 8px; font-size: 12.5px; line-height: 1.55; color: #333; word-break: break-word; }
+.dlg-steps {
+  margin-top: 8px;
+  font-family: var(--font-note);
+  font-size: 12px;
+  line-height: 1.7;
+  color: #333;
+  min-height: 7.4em;
+  white-space: pre-wrap;
+}
+.dlg-buttons { display: flex; justify-content: center; gap: 8px; padding: 4px 12px 14px; }
+
+/* -- 13 easter eggs ------------------------------------------------------- */
+.planet {
+  position: absolute;
+  width: 46px; height: 46px;
+  will-change: transform;
+}
+.planet svg { width: 100%; height: 100%; }
+
+/* -- 14 mobile ------------------------------------------------------------ */
+@media (max-width: 767px) {
+  :root { --menubar-h: 30px; --taskbar-h: 34px; }
+
+  #menubar { padding-left: 6px; gap: 0; }
+  #wordmark { font-size: 10px; padding-right: 6px; }
+  #menus { display: none; }          /* the menus live in the Start menu on phones */
+  #menubar-right { gap: 6px; }
+  #clock { padding: 2px 4px 1px; }
+
+  #desktop { overflow: hidden; }
+  #icons { display: none; }
+  #windows { display: none; }
+
+  #stack {
+    display: block;
+    position: absolute; inset: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px 10px calc(18px + env(safe-area-inset-bottom, 0px));
+    scroll-behavior: smooth;
+  }
+  #stack .window {
+    position: relative !important;   /* relative, not static: the typing hint anchors to it */
+    left: auto !important;
+    top: auto !important;
+    width: auto !important;
+    height: auto !important;
+    max-width: 520px;
+    margin: 0 auto 14px;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  #stack .window .titlebar { cursor: default; }
+  #stack .window.collapsed .win-body { display: none; }
+
+  #stack .notepad-scroll { max-height: 62vh; }
+  /* Scale the monospace to the card so the aligned columns in README.txt
+     survive a 375px screen instead of wrapping mid-line. */
+  #stack .notepad-body {
+    font-size: clamp(9.5px, 2.92vw, 13px);
+    padding: 10px 8px 22px;
+  }
+  #stack .grid { max-height: 58vh; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+  #stack .props-panel { max-height: none; }
+  #stack .viewer-stage { min-height: 190px; }
+
+  .stack-end {
+    max-width: 520px;
+    margin: 6px auto 0;
+    text-align: center;
+    font-family: var(--font-pixel);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .task { flex: 0 0 auto; }
+  .task span { display: none; }
+  .task svg { width: 16px; height: 16px; }
+  #tray { font-size: 10px; padding: 4px 6px 3px; }
+  #start-btn .start-label { display: none; }
+  #start-btn { padding: 4px 7px 3px; }
+
+  #startmenu { width: min(260px, calc(100vw - 16px)); max-height: 72vh; overflow: auto; }
+
+  .dialog { width: min(340px, calc(100vw - 24px)); }
+  .prop-k { flex: 0 0 88px; }
+}
+
+/* very small phones */
+@media (max-width: 360px) {
+  .prop-row { flex-direction: column; gap: 0; }
+  .prop-k { flex: none; }
+}
+
+/* -- motion / accessibility ---------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .crt-lines { animation: none; }
+  .marquee-inner { animation-duration: 40s; }
+  .window.opening { transition: none; }
+  #tray::before { animation: none; }
+  .dialog { animation: none; }
+  .planet { transition: none; }
+}
