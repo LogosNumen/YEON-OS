@@ -1,0 +1,12 @@
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# Local tooling (preview server config, agent scratch)
+.claude/
+
+# Nothing here needs building, so nothing here needs installing
+node_modules/

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>YEON-OS</title>
+<meta name="description" content="A signal received from an unknown planet.">
+
+<!-- Fonts, loaded without blocking: the boot screen must start typing straight
+     away rather than waiting on a CDN. Everything degrades to the system stacks
+     in style.css if these never arrive at all.
+     VT323 + Michroma: Google. Galmuri11 (pixel, full Hangul) and Pretendard
+     (Korean/Latin body copy): jsDelivr. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Michroma&family=VT323&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/Galmuri11.css">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
+<noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=VT323&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/Galmuri11.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
+</noscript>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+
+<!-- Background layers: starfield canvas, circuit tiling, CRT overlay ------- -->
+<canvas id="starfield" aria-hidden="true"></canvas>
+<div id="circuit" aria-hidden="true"></div>
+<div id="crt" aria-hidden="true"><div class="crt-lines"></div><div class="crt-vignette"></div></div>
+
+<!-- 1. BOOT ---------------------------------------------------------------- -->
+<div id="boot" role="status" aria-live="polite">
+  <pre id="boot-text"></pre>
+  <div id="boot-skip"></div>
+</div>
+
+<!-- 2. DESKTOP ------------------------------------------------------------- -->
+<div id="os" hidden>
+
+  <div id="menubar">
+    <span id="wordmark">YEON-OS</span>
+    <nav id="menus" aria-label="Main menu"></nav>
+    <div id="menubar-right">
+      <div id="lang" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" data-set-lang="en">EN</button>
+        <span class="lang-sep">/</span>
+        <button type="button" class="lang-btn" data-set-lang="ko">KO</button>
+      </div>
+      <span id="clock" aria-label="Clock"></span>
+    </div>
+  </div>
+
+  <main id="desktop">
+    <div id="icons" aria-label="Desktop icons"></div>
+    <div id="windows"></div>
+    <div id="stack"></div><!-- mobile: windows render into here as a vertical list -->
+    <div id="sprites" aria-hidden="true"></div>
+  </main>
+
+  <div id="taskbar">
+    <button type="button" id="start-btn">
+      <span class="start-icon" aria-hidden="true"></span>
+      <span class="start-label">Start</span>
+    </button>
+    <div id="tasks"></div>
+    <div id="tray"><span id="tray-host"></span></div>
+  </div>
+
+  <div id="startmenu" hidden></div>
+  <div id="dialogs"></div>
+
+</div>
+
+<script src="js/content.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
