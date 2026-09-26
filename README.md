@@ -1,185 +1,104 @@
 # YEON-OS
 
-A birthday card disguised as a retro operating system, received as a signal from
-an unknown planet. The planet is Yeon.
+A birthday card for Yeon, dressed up as an old computer that's picked up a
+signal from an unknown planet. The planet is her.
 
-Built as plain HTML, CSS and vanilla JavaScript. No frameworks, no build step,
-no npm, no dependencies to install. Open `index.html` and it runs.
+It's live at https://logosnumen.github.io/YEON-OS/
 
----
+It's just HTML, CSS and plain JavaScript. No frameworks, nothing to install,
+no build step. Open `index.html` and it runs.
 
-## Running it
 
-Double-click `index.html`. That's it.
+## Running it locally
 
-If you'd rather serve it over HTTP (the YouTube player is happier that way):
+Double-click `index.html`. If the music player acts up when opened as a file,
+serve the folder instead:
 
 ```bash
 python -m http.server 8790
 ```
 
-Then open <http://localhost:8790>.
+and go to http://localhost:8790.
 
----
 
-## Editing the content
+## Changing the words
 
-**Everything you need to change is in `js/content.js`.** You should never have to
-open the HTML or the JavaScript. That file is commented section by section, in
-the order things appear on screen.
+All the text on the site is in `js/content.js`. You shouldn't need to open any
+other file. It's commented and roughly in the order things show up on screen.
 
-Three things to know:
+Every bit of text has an English and a Korean version, like
+`{ en: "hello", ko: "안녕" }`. If you leave one side empty it falls back to the
+other, so nothing ever shows up blank. Longer text is a list of lines, and an
+empty `""` line is a blank line.
 
-1. **Text comes in pairs.** `{ en: "English", ko: "한국어" }`. Fill in both. If you
-   leave one side empty the site falls back to the other, so a half-translated
-   line never shows up blank.
-2. **Paragraphs are arrays.** Each string is its own line. An empty string `""`
-   makes a blank line.
-3. **`[[LIKE_THIS]]` is a blank I couldn't fill.** Replace the whole thing,
-   brackets included. Full list at the bottom of this file.
+Save, refresh, done.
 
-Save the file, refresh the browser. There is no build step.
+The menu items in `content.js` either do something built in (like opening a
+window) or pop up a little message box that's written right there in the file,
+so you can rewrite any of the joke dialogs without touching the code.
 
-### Adding photos
+The boot screen speed is `boot.charDelay` and `boot.lineDelay`. The first visit
+takes about ten seconds and can be skipped with any key. After that it's about
+two.
 
-Drop image files into `assets/photos/`, then list them in `content.js` under
-`gallery.photos`:
+
+## The gallery
+
+The pictures are in `assets/gallery/` and listed under `gallery.photos` in
+`content.js`. At the moment it's eight bits of pixel art drawn for the site:
+four cats and four space things.
+
+To add a photo, drop it in that folder and add a line like:
 
 ```js
-photos: [
-  { file: 'jeju.jpg',  caption: { en: 'Jeju, last spring', ko: '작년 봄 제주' } },
-  { file: 'noodles.jpg', caption: { en: 'The noodle incident', ko: '그 국수 사건' } }
-]
+{ file: 'us.jpg', caption: { en: 'a caption', ko: '캡션' } },
 ```
 
-Leave the list empty and the gallery draws numbered placeholder tiles instead,
-which still look deliberate. A filename that doesn't exist falls back to a
-"404" tile rather than a broken image.
+Try to keep photos around 1200px wide. Full-size phone photos will be slow.
 
-Landscape photos around 1200px wide are the sweet spot. They're loaded at full
-size, so don't drop 8MB camera originals in there.
 
-### Changing the timings
+## Updating the live site
 
-In `content.js`:
-
-- `boot.charDelay` / `boot.lineDelay` — first-visit BIOS speed (~11 seconds).
-- `boot.fastCharDelay` / `boot.fastLineDelay` — repeat visits (~2 seconds).
-  `fastCharDelay: 0` means "print whole lines at once".
-- `message.typeSpeed` — how fast the birthday message types itself out.
-
----
-
-## Deploying to GitHub Pages
-
-Every path in the project is relative, so it works from a subdirectory with no
-configuration at all.
+GitHub Pages publishes straight from `main`, so pushing is all it takes. It
+updates a minute or two later.
 
 ```bash
-git remote add origin https://github.com/<your-username>/YEON-OS.git
-git push -u origin main
+git add -A
+git commit -m "Update the card"
+git push
 ```
 
-Then on GitHub: **Settings → Pages → Build and deployment → Deploy from a
-branch**, pick `main` and `/ (root)`, save.
 
-It goes live at `https://<your-username>.github.io/YEON-OS/` in a minute or two.
+## Things to know
 
-No workflow file, no Jekyll config, no `.nojekyll` needed — nothing here starts
-with an underscore.
+The icons, the circuit pattern, the scanlines and the gallery art are all drawn
+in code. There are no image downloads or icon fonts. The icons are little 16x16
+grids near the top of `js/app.js` if you ever want to redraw one.
 
----
+The song plays through YouTube's own embed with a custom skin over it. Nothing
+is hosted here, and nothing makes a sound until she presses play. If YouTube
+can't load, the player shows a link instead.
 
-## How it's put together
+On a phone the windows turn into a scrolling stack of cards. Same look, same
+content, just no dragging. On a computer you double-click the icons like a real
+desktop.
 
-```
-index.html          the shell: background layers, boot screen, desktop, taskbar
-css/style.css       all of it, hand-written, sectioned and commented
-js/content.js       every word on the site  <-- the only file you need to edit
-js/app.js           the machine: windows, boot, starfield, apps, easter eggs
-assets/favicon.svg  a drawn planet
-assets/photos/      your photos go here
-```
+The site remembers the language she picked, whether she's seen the boot screen,
+and the View menu settings. There's no tracking or analytics of any kind.
 
-A few things worth knowing:
+A few things to find: click the clock for a birthday countdown, try the Konami
+code, type "yeon" anywhere, and open do_not_open.exe.
 
-- **Every icon is drawn in code.** They're 16×16 pixel grids in `js/app.js`
-  (look for `GRIDS`), turned into SVG rectangles at runtime. No image files, no
-  icon font, no emoji. If you want to redraw one, edit the grid — `k` is ink,
-  `w` white, `y` gold, `c` cyan, `.` transparent, and the key is in `PAL`.
-- **The starfield** is a canvas, ~200 stars drifting slowly. The Konami code
-  sends it into hyperspace for a few seconds.
-- **The circuit-board pattern and the scanlines** are generated in CSS. The
-  circuit tile is an inline SVG data URI in `style.css`.
-- **The music** is the official YouTube embed for 이 별로부터, hidden behind a
-  custom skin and driven by the YouTube IFrame API. Nothing is hosted here and
-  **nothing makes a sound until she presses play.** If YouTube can't be reached,
-  the player shows a link out instead of sitting there broken.
-- **Fonts** load from Google Fonts and jsDelivr, non-blocking, with system
-  fallbacks. Offline, it degrades to Tahoma/monospace and still looks like an
-  operating system.
-- **Mobile** (under 768px) drops the draggable-window metaphor and renders the
-  same windows as a vertical stack of cards, keeping the title bars, bevels,
-  fonts, starfield and scanlines. The boot screen and player stay.
-- **Language** is remembered in `localStorage`, as is whether she's seen the
-  boot sequence before, and the starfield/scanline toggles under **View**.
 
-### Easter eggs
+## Worth double-checking
 
-- **Konami code** (↑↑↓↓←→←→BA) — the starfield goes to hyperspace.
-- **Type `yeon`** anywhere — a small planet drifts across the desktop.
-- **Click the YEON-OS wordmark** — same thing, for phones, which can't type.
-- **Help → About YEON-OS** — the About box.
-- **Search → For Signal...** — a fake scan that finds exactly one planet.
-- **File → Exit** and **Start → Shut Down** — both politely refuse.
-- **do_not_open.exe** — four errors pile up and the last one isn't an error.
+Everything's filled in, but a few bits were my guesses:
 
----
-
-## What I still owe you
-
-Every `[[PLACEHOLDER]]` currently visible on the site. All of them live in
-`js/content.js`. Nothing here is invented — I left every fact and every real
-sentiment for you.
-
-### The facts (8)
-
-| Placeholder | What it wants | Where it shows |
-|---|---|---|
-| `[[HER_AGE]]` | A number | BIOS version, About box, README heading, Uptime |
-| `[[HER_KOREAN_NAME]]` | Her name in Hangul | Title bars, Device row |
-| `[[HER_KOREAN_NAME_VOCATIVE]]` | How you'd actually say it to her (e.g. 연아) | The final birthday dialog |
-| `[[HER_CITY]]` / `[[HER_CITY_KO]]` | Where she is | BIOS origin line, Location row |
-| `[[BIRTHDAY_DATE]]` / `[[BIRTHDAY_DATE_KO]]` | The date, written how you like | "Last restart" row |
-| `[[HER_NAME_FOR_THE_LICENCE_LINE]]` / `_KO` | Her name again, for "Licensed to:" | About box |
-
-### The writing (5, each in both languages)
-
-| Placeholder | What it wants |
-|---|---|
-| `[[SOMETHING_AFFECTIONATE_HERE]]` / `_KO` | The "Known issues" row. One dry, fond line — the best joke in properties.exe and it should be yours |
-| `[[WRITE_A_LINE_OR_TWO_HERE_IN_YOUR_OWN_VOICE]]` / `_KO` | Two lines at the end of README.txt |
-| `[[OPENING_LINE_HOW_YOU_ACTUALLY_GREET_HER]]` / `[[OPENING_LINE_KO]]` | First line of the card |
-| `[[PARAGRAPH_ONE_THE_REAL_THING_YOU_WANT_TO_SAY]]` / `[[PARAGRAPH_ONE_KO]]` | The card itself |
-| `[[PARAGRAPH_TWO_OPTIONAL]]` / `[[PARAGRAPH_TWO_KO_OPTIONAL]]` | More, if you have more. Delete the line if you don't |
-| `[[SIGN_OFF]]` / `[[SIGN_OFF_KO]]` | How you end it |
-
-The message window types itself out, so keep lines fairly short — under about
-50 characters each reads best and wraps cleanly on a phone.
-
-### Only if you add photos
-
-`[[CAPTION_1]]`…`[[CAPTION_3]]` and their `_KO` pairs are sitting in a commented-out
-example inside `gallery.photos`. Ignore them entirely unless you add pictures.
-
-### Two things I did write
-
-The BIOS boot text and the fake error dialogs are jokes about the format rather
-than about her, so those are finished. Change them if you can do better — the
-error cascade is the `errors` array, the BIOS is `boot.lines`.
-
----
-
-Built by Chris on Earth. Nothing here phones home: no analytics, no cookie
-banner, no trackers, and the only external requests are the two font CDNs and
-YouTube — and YouTube isn't contacted until player.exe is opened.
+- Her name in Korean is set to 연 (and 연아 when calling her). That's straight
+  from "Yeon". If her Korean name is different, change `meta.name` and
+  `meta.nameVocative`.
+- For the "Licensed to" line in Help > About, you asked for something from the
+  music video. The words in it are the song's lyrics, which I can't copy, so I
+  went with "Yeon, brightest star in Seoul" instead. It's in
+  `dialogs.about.lines` if you'd like to put in your own.
+- README.txt ends with "happy 26th!", which I added. Change it if you want.
