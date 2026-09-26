@@ -294,6 +294,10 @@ body.no-crt #crt { display: none; }
   font-size: var(--fs-chrome);
   color: #fff;
   text-align: center;
+  /* double-clicking must open the app, not highlight the label */
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 .icon svg { width: 32px; height: 32px; image-rendering: pixelated; filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.6)); }
 .icon .icon-label {
@@ -306,7 +310,11 @@ body.no-crt #crt { display: none; }
 .icon.selected .icon-label { background: var(--sel); }
 .icon.selected { border-color: rgba(255,255,255,0.5); }
 
-#windows { position: absolute; inset: 0; z-index: 30; }
+/* The windows layer covers the whole desktop so windows can go anywhere, but it
+   must let clicks fall through to the icons underneath. Only the windows
+   themselves catch the pointer. */
+#windows { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+#windows > .window { pointer-events: auto; }
 #stack { display: none; }
 #sprites { position: absolute; inset: 0; z-index: 25; pointer-events: none; overflow: hidden; }
 

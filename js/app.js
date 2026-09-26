@@ -1436,7 +1436,13 @@
         document.querySelectorAll('.icon.selected').forEach(function (n) { n.classList.remove('selected'); });
         b.classList.add('selected');
       });
+      // Mouse: click selects, double-click opens, like a real desktop.
       b.addEventListener('dblclick', function () { launch(ic.id, b); });
+      // Touchscreens (a tablet wide enough to get the desktop): one tap opens,
+      // because double-tapping tends to zoom the page instead.
+      b.addEventListener('pointerup', function (e) {
+        if (e.pointerType === 'touch' || e.pointerType === 'pen') launch(ic.id, b);
+      });
       b.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); launch(ic.id, b); }
       });
