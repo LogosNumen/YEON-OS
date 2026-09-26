@@ -541,7 +541,13 @@
     win.classList.add('opening');
     win.style.transform = 'none';
     win.style.opacity = '1';
-    setTimeout(function () { win.classList.remove('opening'); win.style.transformOrigin = ''; }, 200);
+    setTimeout(function () {
+      // Force the end state rather than trusting the animation to have run:
+      // a throttled or backgrounded tab can leave it frozen at 18% size.
+      if (win.getAnimations) win.getAnimations().forEach(function (a) { try { a.finish(); } catch (e) {} });
+      win.classList.remove('opening');
+      win.style.transformOrigin = '';
+    }, 200);
   }
 
   function makeDraggable(rec, handle) {
