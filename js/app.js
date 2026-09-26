@@ -295,7 +295,9 @@
     }
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = cv.clientWidth; h = cv.clientHeight;
+      // The canvas fills the viewport, so measure that rather than the canvas:
+      // a canvas hidden under View > Starfield has no size of its own.
+      w = window.innerWidth; h = window.innerHeight;
       cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       seed();
@@ -313,6 +315,7 @@
     }
     function frame(now) {
       raf = requestAnimationFrame(frame);
+      if (document.body.classList.contains('no-stars')) return;   // hidden: don't draw
       var hyper = now < hyperUntil;
       warp += ((hyper ? 1 : 0) - warp) * 0.08;      // ease in and out of the streaks
       ctx.clearRect(0, 0, w, h);
@@ -604,82 +607,157 @@
     else focusWin(id);
   }
 
-  /* -- 06 notepad ---------------------------------------------------------- */
+  /* -- 06 notepad ----------------------------------------------------------
+     README.txt and birthday_message.txt share this: a menu strip where every
+     item does something, a page, a status bar, and a typewriter that a click
+     skips to the end of.
+     ---------------------------------------------------------------------- */
   function notepadShell(rec) {
+    var N = C.notepad;
     var np = el('div', 'notepad');
     var menu = el('div', 'appmenu');
-    C.ui.notepadMenu.forEach(function (pair) {
-      var s = el('span');
-      bind(s, pair);
-      menu.appendChild(s);
-    });
     var scroll = el('div', 'notepad-scroll');
     var pre = el('pre', 'notepad-body body-copy');
-    scroll.appendChild(pre);
-    np.appendChild(menu); np.appendChild(scroll);
-    rec.body.appendChild(np);
-    return { np: np, scroll: scroll, pre: pre };
-  }
-
-  function buildReadme(rec) {
-    var ui = notepadShell(rec);
-    onLang(rec.el, function () {
-      rec.setTitle(C.readme.title);
-      ui.pre.textContent = tLines(C.readme.body).join('\n');
-    });
-  }
-
-  function buildMessage(rec) {
-    var ui = notepadShell(rec);
-    var caret = el('span', 'caret');
-    // The skip hint lives in a status bar rather than floating over the words,
-    // which on a phone landed right on top of the message.
     var status = el('div', 'statusbar');
-    var hint = el('span', 'grow');
-    status.appendChild(hint);
-    ui.np.appendChild(status);
-    var timer = 0, done = false, text = '', i = 0;
+    var msg = el('span', 'grow');
+    status.appendChild(msg);
+    scroll.appendChild(pre);
+    np.appendChild(menu); np.appendChild(scroll); np.appendChild(status);
+    rec.body.appendChild(np);
 
-    function fullText() { return tLines(C.message.body).join('\n'); }
+    var caret = el('span', 'caret');
+    var ui = { np: np, scroll: scroll, pre: pre, typing: false, wrap: true, scale: 1 };
+    var timer = 0, flashTimer = 0, text = '', i = 0, hint = null;
 
-    function finish() {
+    function idleStatus() { msg.textContent = ui.typing && hint ? t(hint) : ''; }
+    ui.flash = function (pair) {
+      clearTimeout(flashTimer);
+      msg.textContent = t(pair);
+      flashTimer = setTimeout(idleStatus, 2400);
+    };
+    ui.setText = function (s) {
       clearTimeout(timer);
-      done = true;
-      ui.pre.textContent = text;
-      ui.np.classList.remove('typing');
-      hint.textContent = '';
-      ui.scroll.scrollTop = 0;
-    }
+      ui.typing = false;
+      np.classList.remove('typing');
+      text = s;
+      pre.textContent = s;
+      idleStatus();
+    };
+    ui.finish = function () {
+      if (!ui.typing) return;
+      ui.setText(text);
+      scroll.scrollTop = 0;
+    };
     function tick() {
-      if (done) return;
+      if (!ui.typing) return;
       i++;
-      ui.pre.textContent = text.slice(0, i);
-      ui.pre.appendChild(caret);
-      ui.scroll.scrollTop = ui.scroll.scrollHeight;
-      if (i >= text.length) { finish(); return; }
+      pre.textContent = text.slice(0, i);
+      pre.appendChild(caret);
+      scroll.scrollTop = scroll.scrollHeight;
+      if (i >= text.length) { ui.finish(); return; }
       var ch = text[i - 1];
       var wait = C.message.typeSpeed;
       if (ch === '\n') wait = 190;
       else if ('.,!?'.indexOf(ch) > -1) wait = C.message.typeSpeed * 7;
       timer = setTimeout(tick, wait);
     }
-    function start() {
+    ui.type = function (s, skipHint) {
       clearTimeout(timer);
-      done = false; i = 0;
-      text = fullText();
-      ui.pre.textContent = '';
-      ui.np.classList.add('typing');
-      hint.textContent = t(C.message.skipHint);
+      text = s; i = 0; hint = skipHint || null;
+      ui.typing = true;
+      pre.textContent = '';
+      np.classList.add('typing');
+      idleStatus();
       timer = setTimeout(tick, 420);
+    };
+    scroll.addEventListener('click', ui.finish);
+    status.addEventListener('click', ui.finish);
+
+    // -- the menu strip ---------------------------------------------------
+    function checked(item) { return item.action === 'np-wrap' ? ui.wrap : false; }
+    function selectAll() {
+      ui.finish();
+      var r = document.createRange();
+      r.selectNodeContents(pre);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
     }
+    function copyText() {
+      ui.finish();
+      var s = pre.textContent;
+      function ok() { ui.flash(N.status.copied); }
+      function fallback() {
+        selectAll();
+        try { document.execCommand('copy') ? ok() : ui.flash(N.status.copyFailed); }
+        catch (e) { ui.flash(N.status.copyFailed); }
+      }
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(s).then(ok, fallback);
+      else fallback();
+    }
+    function setScale(v) {
+      ui.scale = clamp(Math.round(v * 100) / 100, 0.7, 1.75);
+      pre.style.setProperty('--np-scale', ui.scale);
+      var pct = Math.round(ui.scale * 100) + '%';
+      ui.flash({ en: 'Zoom ' + pct, ko: '확대 ' + pct });
+    }
+    function pick(item) {
+      switch (item.action) {
+        case 'np-replay': if (rec.replay) rec.replay(); break;
+        case 'np-close': closeWin(rec.id); break;
+        case 'np-select': selectAll(); ui.flash(N.status.selected); break;
+        case 'np-copy': copyText(); break;
+        case 'np-wrap':
+          ui.wrap = !ui.wrap;
+          pre.classList.toggle('nowrap', !ui.wrap);
+          ui.flash(ui.wrap ? N.status.wrapOn : N.status.wrapOff);
+          break;
+        case 'np-bigger': setScale(ui.scale + 0.15); break;
+        case 'np-smaller': setScale(ui.scale - 0.15); break;
+      }
+      if (item.dialog) showInfo(item.dialog);
+    }
+    N.menus.forEach(function (m) {
+      var b = el('button', 'appmenu-btn'); b.type = 'button';
+      bind(b, m.label);
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleMenu(b, m.items, pick, checked);
+      });
+      b.addEventListener('mouseenter', function () { hoverSwitch(b, m.items, pick, checked); });
+      menu.appendChild(b);
+    });
 
-    ui.np.addEventListener('click', function () { if (!done) finish(); });
-    rec.cleanup.push(function () { clearTimeout(timer); done = true; });
+    rec.cleanup.push(function () {
+      clearTimeout(timer); clearTimeout(flashTimer);
+      ui.typing = false;
+      if (openTop && rec.el.contains(openTop)) closeMenus();
+    });
+    return ui;
+  }
 
+  function buildReadme(rec) {
+    var ui = notepadShell(rec);
+    function body() { return tLines(C.readme.body).join('\n'); }
+    rec.replay = function () { ui.type(body(), C.message.skipHint); };
+    onLang(rec.el, function () {
+      rec.setTitle(C.readme.title);
+      if (ui.typing) rec.replay();
+      else ui.setText(body());
+    });
+  }
+
+  function buildMessage(rec) {
+    var ui = notepadShell(rec);
+    var started = false;
+    function body() { return tLines(C.message.body).join('\n'); }
+    rec.replay = function () { ui.type(body(), C.message.skipHint); };
     onLang(rec.el, function () {
       rec.setTitle(C.message.title);
-      if (done) { ui.pre.textContent = fullText(); }
-      else { start(); }
+      // Types itself out the first time; after that a language switch just
+      // swaps the text, unless it is still mid-sentence.
+      if (!started || ui.typing) { started = true; rec.replay(); }
+      else ui.setText(body());
     });
   }
 
@@ -723,7 +801,7 @@
         var p = photoAt(idx);
         if (p) {
           var img = new Image();
-          img.src = 'assets/photos/' + p.file;
+          img.src = (C.gallery.folder || 'assets/gallery/') + p.file;
           img.alt = photoCaption(idx);
           img.addEventListener('error', function () {
             fr.classList.add('ph');
@@ -777,18 +855,18 @@
       stage.innerHTML = '';
       if (p) {
         var img = new Image();
-        img.src = 'assets/photos/' + p.file;
+        img.src = (C.gallery.folder || 'assets/gallery/') + p.file;
         img.alt = photoCaption(viewerIndex);
         img.addEventListener('error', function () {
           stage.innerHTML = '';
           var ph = el('div', 'viewer-ph');
-          ph.textContent = 'assets/photos/' + p.file + '\nNOT FOUND';
+          ph.textContent = (C.gallery.folder || 'assets/gallery/') + p.file + '\nNOT FOUND';
           stage.appendChild(ph);
         });
         stage.appendChild(img);
       } else {
         var ph2 = el('div', 'viewer-ph');
-        ph2.textContent = photoCaption(viewerIndex) + '\n\n[ drop a photo in assets/photos/ ]';
+        ph2.textContent = photoCaption(viewerIndex) + '\n\n[ drop a picture in assets/gallery/ ]';
         stage.appendChild(ph2);
       }
       count.textContent = fmt(t(C.ui.ofN), { i: viewerIndex + 1, n: n });
@@ -1149,17 +1227,73 @@
   /* -- 11 menu bar / clock --------------------------------------------------- */
   var prefs = {
     stars: store('stars') !== '0',
-    crt: store('crt') !== '0'
+    crt: store('crt') !== '0',
+    bigIcons: store('bigIcons') === '1'
   };
   function applyPrefs() {
     document.body.classList.toggle('no-stars', !prefs.stars);
     document.body.classList.toggle('no-crt', !prefs.crt);
+    document.body.classList.toggle('big-icons', prefs.bigIcons);
   }
 
+  // One dropdown open at a time, shared by the menu bar and the Notepad menus.
   var openDrop = null, openTop = null;
   function closeMenus() {
     if (openDrop) { openDrop.remove(); openDrop = null; }
     if (openTop) { openTop.classList.remove('open'); openTop = null; }
+  }
+  function openMenu(anchor, items, onPick, checkedFn) {
+    closeMenus();
+    openTop = anchor;
+    anchor.classList.add('open');
+    openDrop = buildDropdown(items, anchor, onPick, checkedFn);
+  }
+  function toggleMenu(anchor, items, onPick, checkedFn) {
+    if (openTop === anchor) { closeMenus(); return; }
+    openMenu(anchor, items, onPick, checkedFn);
+  }
+  // Once a menu is open, sliding onto its neighbour opens that one instead,
+  // the way a real menu bar behaves.
+  function hoverSwitch(anchor, items, onPick, checkedFn) {
+    if (openTop && openTop !== anchor && openTop.parentNode === anchor.parentNode) {
+      openMenu(anchor, items, onPick, checkedFn);
+    }
+  }
+  function buildDropdown(items, anchor, onPick, checkedFn) {
+    var dd = el('div', 'dropdown');
+    items.forEach(function (item) {
+      if (item.sep) { dd.appendChild(el('div', 'dd-sep')); return; }
+      var b = el('button', 'dd-item'); b.type = 'button';
+      var chk = el('span', 'dd-check', item.check && checkedFn && checkedFn(item) ? '\u2713' : '');
+      var lab = el('span');
+      bind(lab, item.label);
+      b.appendChild(chk); b.appendChild(lab);
+      if (item.hint) { var h = el('span', 'dd-hint'); bind(h, item.hint); b.appendChild(h); }
+      if (item.enabled === false) b.disabled = true;
+      else b.addEventListener('click', function (e) { e.stopPropagation(); closeMenus(); onPick(item); });
+      dd.appendChild(b);
+    });
+    document.body.appendChild(dd);
+    var r = anchor.getBoundingClientRect();
+    dd.style.left = Math.round(clamp(r.left, 2, window.innerWidth - dd.offsetWidth - 4)) + 'px';
+    var top = r.bottom;
+    if (top + dd.offsetHeight > window.innerHeight - 4) top = Math.max(4, r.top - dd.offsetHeight);
+    dd.style.top = Math.round(top) + 'px';
+    return dd;
+  }
+
+  // A menu item can run an action, show a dialog from content.js, or both.
+  function runItem(item) {
+    closeMenus();
+    closeStart();
+    if (item.action) doAction(item.action);
+    if (item.dialog) showInfo(item.dialog);
+  }
+  function showInfo(d) {
+    return showDialog({
+      kind: d.kind || 'info', title: d.title, heading: d.heading,
+      detail: d.detail, steps: d.steps, buttons: d.buttons
+    });
   }
 
   function doAction(action) {
@@ -1167,12 +1301,17 @@
     closeStart();
     switch (action) {
       case 'open-message': openWin('message'); break;
-      case 'exit': showDialog({ kind: 'error', title: C.dialogs.exit.title, heading: C.dialogs.exit.heading, detail: C.dialogs.exit.detail, buttons: C.dialogs.exit.buttons, onClose: null }); break;
-      case 'shutdown': showDialog({ kind: 'error', title: C.dialogs.shutdown.title, heading: C.dialogs.shutdown.heading, detail: C.dialogs.shutdown.detail, buttons: C.dialogs.shutdown.buttons, onClose: null }); break;
+      case 'readme': openWin('readme'); break;
+      case 'exit': showInfo(C.dialogs.exit); break;
+      case 'shutdown': showInfo(C.dialogs.shutdown); break;
       case 'about': showAbout(); break;
-      case 'scan': showDialog({ kind: 'info', title: C.dialogs.scan.title, heading: C.dialogs.scan.heading, steps: C.dialogs.scan.steps, buttons: C.dialogs.scan.buttons, onClose: null }); break;
+      case 'scan': showInfo(C.dialogs.scan); break;
+      case 'planet': spawnPlanet(); break;
+      case 'hyperspace': warp(); break;
+      case 'arrange': arrangeIcons(); break;
       case 'toggle-stars': prefs.stars = !prefs.stars; store('stars', prefs.stars ? '1' : '0'); applyPrefs(); break;
       case 'toggle-crt': prefs.crt = !prefs.crt; store('crt', prefs.crt ? '1' : '0'); applyPrefs(); break;
+      case 'toggle-icons': prefs.bigIcons = !prefs.bigIcons; store('bigIcons', prefs.bigIcons ? '1' : '0'); applyPrefs(); break;
     }
   }
 
@@ -1190,6 +1329,20 @@
     });
   }
 
+  // Hyperspace needs stars to streak, so warping switches the starfield back on
+  // if it was turned off under View.
+  function warp() {
+    if (!prefs.stars) { prefs.stars = true; store('stars', '1'); applyPrefs(); }
+    Stars.hyper(3600);
+  }
+
+  // View > Arrange By: Fondness really does rearrange: the card goes to the top.
+  function arrangeIcons() {
+    var host = $('#icons');
+    var first = host.querySelector('[data-app="message"]');
+    if (first) host.insertBefore(first, host.firstChild);
+  }
+
   function menuLabelFor(action) {
     for (var i = 0; i < C.menus.length; i++) {
       var items = C.menus[i].items;
@@ -1200,31 +1353,11 @@
     return null;
   }
 
-  function isChecked(action) {
-    if (action === 'toggle-stars') return prefs.stars;
-    if (action === 'toggle-crt') return prefs.crt;
+  function isChecked(item) {
+    if (item.action === 'toggle-stars') return prefs.stars;
+    if (item.action === 'toggle-crt') return prefs.crt;
+    if (item.action === 'toggle-icons') return prefs.bigIcons;
     return false;
-  }
-
-  function buildDropdown(menu, anchor) {
-    var dd = el('div', 'dropdown');
-    menu.items.forEach(function (item) {
-      if (item.sep) { dd.appendChild(el('div', 'dd-sep')); return; }
-      var b = el('button', 'dd-item'); b.type = 'button';
-      var chk = el('span', 'dd-check', item.check && isChecked(item.action) ? '\u2713' : '');
-      var lab = el('span');
-      bind(lab, item.label);
-      b.appendChild(chk); b.appendChild(lab);
-      if (item.hint) b.appendChild(el('span', 'dd-hint', item.hint));
-      if (!item.enabled) b.disabled = true;
-      else b.addEventListener('click', function () { doAction(item.action); });
-      dd.appendChild(b);
-    });
-    document.body.appendChild(dd);
-    var r = anchor.getBoundingClientRect();
-    dd.style.left = Math.round(clamp(r.left, 2, window.innerWidth - dd.offsetWidth - 4)) + 'px';
-    dd.style.top = Math.round(r.bottom) + 'px';
-    return dd;
   }
 
   function buildMenubar() {
@@ -1239,19 +1372,9 @@
       bind(b, menu.label);
       b.addEventListener('click', function (e) {
         e.stopPropagation();
-        var wasOpen = openTop === b;
-        closeMenus();
-        if (wasOpen) return;
-        openTop = b; b.classList.add('open');
-        openDrop = buildDropdown(menu, b);
+        toggleMenu(b, menu.items, runItem, isChecked);
       });
-      b.addEventListener('mouseenter', function () {
-        if (openTop && openTop !== b) {
-          closeMenus();
-          openTop = b; b.classList.add('open');
-          openDrop = buildDropdown(menu, b);
-        }
-      });
+      b.addEventListener('mouseenter', function () { hoverSwitch(b, menu.items, runItem, isChecked); });
       host.appendChild(b);
     });
 
@@ -1260,6 +1383,34 @@
     });
 
     $('#tray-host').textContent = C.meta.hostname;
+    $('#tray').addEventListener('click', function () { showInfo(C.dialogs.network); });
+  }
+
+  // Days from today until her next birthday, in whatever timezone she's in.
+  function daysUntilBirthday() {
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var m = C.meta.birthdayMonth - 1, d = C.meta.birthdayDay;
+    var next = new Date(today.getFullYear(), m, d);
+    if (next < today) next = new Date(today.getFullYear() + 1, m, d);
+    return Math.round((next - today) / 86400000);
+  }
+
+  function showCountdown() {
+    var c = C.dialogs.clock, n = daysUntilBirthday(), now = new Date();
+    var date = {
+      en: now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
+      ko: now.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })
+    };
+    showDialog({
+      kind: 'info',
+      title: c.title,
+      heading: { en: fmt(c.heading.en, { date: date.en }), ko: fmt(c.heading.ko, { date: date.ko }) },
+      detail: n === 0 ? c.today
+            : n === 1 ? c.untilOne
+            : { en: fmt(c.until.en, { n: n }), ko: fmt(c.until.ko, { n: n }) },
+      buttons: c.buttons
+    });
   }
 
   function startClock() {
@@ -1275,6 +1426,7 @@
     }
     onLang(out, paint);
     setInterval(paint, 5000);
+    out.addEventListener('click', showCountdown);
   }
 
   /* -- 12 taskbar / start ---------------------------------------------------- */
@@ -1389,7 +1541,7 @@
       var k = (e.key || '').toLowerCase();
 
       kIdx = (k === KONAMI[kIdx]) ? kIdx + 1 : (k === KONAMI[0] ? 1 : 0);
-      if (kIdx === KONAMI.length) { kIdx = 0; Stars.hyper(3600); }
+      if (kIdx === KONAMI.length) { kIdx = 0; warp(); }
 
       if (k.length === 1) {
         typed = (typed + k).slice(-8);
@@ -1424,6 +1576,7 @@
     host.innerHTML = '';
     C.icons.forEach(function (ic) {
       var b = el('button', 'icon'); b.type = 'button';
+      b.setAttribute('data-app', ic.id);
       b.innerHTML = iconSVG(ic.icon, 32);
       var lab = el('span', 'icon-label');
       onLang(b, function () {
@@ -1551,10 +1704,13 @@
     });
 
     window.addEventListener('resize', function () {
+      closeMenus();
       Stars.resize();
       layout();
       keepWindowsOnScreen();
     });
+    // a dropdown shouldn't float in place while its window scrolls away
+    $('#stack').addEventListener('scroll', closeMenus, { passive: true });
     document.addEventListener('click', function (e) {
       if (!e.target.closest('#menubar')) closeMenus();
       if (!e.target.closest('#startmenu') && !e.target.closest('#start-btn')) closeStart();

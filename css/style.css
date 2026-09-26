@@ -240,7 +240,10 @@ body.no-crt #crt { display: none; }
   border: 1px solid var(--face-lo);
   box-shadow: inset 1px 1px 0 var(--face-dark), inset -1px -1px 0 var(--face-hi);
   background: #e4e4e4;
+  color: var(--ink);
 }
+#clock:hover { background: #f0f0f0; }
+#clock:active { box-shadow: inset 1px 1px 0 var(--face-dark), inset 2px 2px 0 var(--face-lo); }
 
 /* dropdowns */
 .dropdown {
@@ -299,6 +302,10 @@ body.no-crt #crt { display: none; }
   user-select: none;
   touch-action: manipulation;
 }
+/* View > Large Icons */
+body.big-icons #icons { width: 128px; gap: 10px; }
+body.big-icons .icon svg { width: 48px; height: 48px; }
+body.big-icons .icon { font-size: 12px; }
 .icon svg { width: 32px; height: 32px; image-rendering: pixelated; filter: drop-shadow(1px 1px 0 rgba(0,0,0,0.6)); }
 .icon .icon-label {
   padding: 1px 3px;
@@ -387,8 +394,8 @@ body.no-crt #crt { display: none; }
   box-shadow: 0 1px 0 var(--face-hi);
   flex: 0 0 auto;
 }
-.appmenu span { padding: 2px 7px 1px; }
-.appmenu span:hover { background: var(--sel); color: #fff; }
+.appmenu-btn { padding: 2px 7px 1px; color: var(--ink); }
+.appmenu-btn:hover, .appmenu-btn.open { background: var(--sel); color: #fff; }
 
 /* generic pressable button */
 .btn {
@@ -560,7 +567,9 @@ body.no-crt #crt { display: none; }
   padding: 4px 8px 3px;
   box-shadow: inset 1px 1px 0 var(--face-dark), inset -1px -1px 0 var(--face-hi);
   white-space: nowrap;
+  color: var(--ink);
 }
+#tray:hover { background: rgba(255,255,255,0.35); }
 #tray::before {
   content: '';
   width: 8px; height: 8px;
@@ -621,7 +630,8 @@ body.no-crt #crt { display: none; }
   margin: 0;
   padding: 10px 12px 26px;
   font-family: var(--font-note);
-  font-size: var(--fs-note);
+  /* --np-scale is Format > Bigger/Smaller Text */
+  font-size: calc(var(--fs-note) * var(--np-scale, 1));
   line-height: 1.62;
   color: var(--ink);
   white-space: pre-wrap;
@@ -629,6 +639,8 @@ body.no-crt #crt { display: none; }
   min-height: 100%;
 }
 [data-lang="ko"] .notepad-body { line-height: 1.75; word-break: keep-all; }
+/* Format > Word Wrap, switched off */
+.notepad-body.nowrap { white-space: pre; word-break: normal; }
 .notepad-body .caret {
   display: inline-block;
   width: 7px; height: 1em;
@@ -971,7 +983,7 @@ body.no-crt #crt { display: none; }
   /* Scale the monospace to the card so the aligned columns in README.txt
      survive a 375px screen instead of wrapping mid-line. */
   #stack .notepad-body {
-    font-size: clamp(9.5px, 2.92vw, 13px);
+    font-size: calc(clamp(9.5px, 2.92vw, 13px) * var(--np-scale, 1));
     padding: 10px 8px 22px;
   }
   #stack .grid { max-height: 58vh; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
